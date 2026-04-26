@@ -13,6 +13,8 @@ export const Icon = ({ name, size = 20, color = 'currentColor' }) => {
     home: <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />,
     book: <><path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></>,
     week: <><rect x="3" y="4" width="18" height="18" rx="2" stroke={color} strokeWidth="2" fill="none" /><path d="M3 10h18M8 2v4M16 2v4M7 14h2M11 14h2M15 14h2" stroke={color} strokeWidth="2" strokeLinecap="round" /></>,
+    sun: <><circle cx="12" cy="12" r="4" stroke={color} strokeWidth="2" fill="none" /><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke={color} strokeWidth="2" strokeLinecap="round" /></>,
+    moon: <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none">{p[name]}</svg>;
 };
