@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const EXERCISE_LIBRARY = {
   'Brust': [
@@ -67,6 +67,53 @@ const GROUP_COLORS = {
 export function ExerciseLibraryModal({ isOpen, onClose, onSelect }) {
   const [search, setSearch] = useState('');
   const [activeGroup, setActiveGroup] = useState(null);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startY = useRef(0);
+  const closingRef = useRef(false);
+
+  // Handle browser back button — close modal instead of navigating
+  useEffect(() => {
+    if (!isOpen) return;
+    closingRef.current = false;
+    history.pushState({ modal: 'exerciseLibrary' }, '');
+
+    const handlePop = () => {
+      if (!closingRef.current) onClose();
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [isOpen]);
+
+  const handleClose = () => {
+    closingRef.current = true;
+    // Go back in history if we pushed a state
+    if (history.state?.modal === 'exerciseLibrary') {
+      history.back();
+    }
+    setDragY(0);
+    onClose();
+  };
+
+  // Touch handlers for swipe-to-dismiss
+  const onTouchStart = (e) => {
+    startY.current = e.touches[0].clientY;
+    setDragging(true);
+  };
+
+  const onTouchMove = (e) => {
+    const delta = e.touches[0].clientY - startY.current;
+    if (delta > 0) setDragY(delta);
+  };
+
+  const onTouchEnd = () => {
+    setDragging(false);
+    if (dragY > 90) {
+      handleClose();
+    } else {
+      setDragY(0);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -79,26 +126,46 @@ export function ExerciseLibraryModal({ isOpen, onClose, onSelect }) {
           .filter(([, exs]) => exs.length > 0)
       );
 
+  // Backdrop opacity fades as you drag down
+  const backdropOpacity = Math.max(0.3, 0.7 - (dragY / 300));
+
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-        backdropFilter: 'blur(4px)', zIndex: 100,
+        position: 'fixed', inset: 0,
+        background: `rgba(0,0,0,${backdropOpacity})`,
+        backdropFilter: dragY > 0 ? 'none' : 'blur(4px)',
+        zIndex: 100,
         display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        transition: dragging ? 'none' : 'background 0.3s',
       }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         style={{
-          background: 'var(--bg-card)', borderRadius: '20px 20px 0 0',
+          background: 'var(--bg-card)',
+          borderRadius: '20px 20px 0 0',
           width: '100%', maxWidth: 520, maxHeight: '80vh',
           display: 'flex', flexDirection: 'column',
           border: '1px solid var(--border)', borderBottom: 'none',
+          transform: `translateY(${dragY}px)`,
+          transition: dragging ? 'none' : 'transform 0.35s cubic-bezier(0.22,1,0.36,1)',
+          willChange: 'transform',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 6px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)' }} />
+        {/* Drag handle — touch target for swipe-to-dismiss */}
+        <div
+          style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px', cursor: 'grab' }}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <div style={{
+            width: 40, height: 4, borderRadius: 2,
+            background: dragging ? 'var(--accent)' : 'var(--border)',
+            transition: 'background 0.2s',
+          }} />
         </div>
 
         <div style={{ padding: '0 20px 12px' }}>
@@ -116,7 +183,9 @@ export function ExerciseLibraryModal({ isOpen, onClose, onSelect }) {
           />
         </div>
 
-        <div className="hide-scrollbar" style={{ display: 'flex', gap: 6, padding: '0 20px 12px', overflowX: 'auto', flexShrink: 0 }}>
+        <div className="hide-scrollbar" style={{
+          display: 'flex', gap: 6, padding: '0 20px 12px', overflowX: 'auto', flexShrink: 0,
+        }}>
           <button
             onClick={() => setActiveGroup(null)}
             style={{
@@ -151,7 +220,7 @@ export function ExerciseLibraryModal({ isOpen, onClose, onSelect }) {
               {exercises.map((ex, i) => (
                 <button
                   key={i}
-                  onClick={() => { onSelect(ex); onClose(); }}
+                  onClick={() => { onSelect(ex); handleClose(); }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     width: '100%', padding: '10px 12px',
